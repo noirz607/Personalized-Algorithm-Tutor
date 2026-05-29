@@ -11,7 +11,7 @@ window._mermaidReady = false;
   var s = document.createElement('script');
   s.src = 'https://registry.npmmirror.com/mermaid/10.9.0/files/dist/mermaid.min.js';
   s.onload = function(){
-    mermaid.initialize({startOnLoad:false, theme:'default', securityLevel:'loose'});
+    mermaid.initialize({startOnLoad:false, theme:'base', securityLevel:'loose', themeVariables:{primaryColor:'#58a6ff', primaryTextColor:'#e6edf3', primaryBorderColor:'#30363d', lineColor:'#8b949e', secondaryColor:'#161b22', tertiaryColor:'#0d1117'}});
     window._mermaidReady = true;
   };
   s.onerror = function(){
@@ -97,7 +97,7 @@ textarea:focus, input:focus { outline:none; border-color:var(--accent); }
 .empty-state { text-align:center; padding:48px 24px; color:var(--text-dim); }
 .empty-state .icon { font-size:48px; margin-bottom:16px; }
 /* mermaid diagram container */
-.mermaid-block { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin:12px 0; overflow-x:auto; text-align:center; }
+.mermaid-block { background:#1c2433; border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin:12px 0; overflow-x:auto; text-align:center; }
 .mermaid-block svg { max-width:100%; }
 .mermaid-raw { background:var(--bg); border:1px dashed var(--border); border-radius:var(--radius); padding:16px; margin:12px 0; overflow-x:auto; }
 .mermaid-raw pre { margin:0; font-size:12px; color:var(--text-dim); }
@@ -223,6 +223,24 @@ function parseMarkdown(text) {
   html = html.replace(/<p>(<blockquote>)/g, '$1');
   html = html.replace(/(<\/blockquote>)<\/p>/g, '$1');
   html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
+
+  // 兜底：检测非标准表格（空格分隔的列，没有 | 竖线），用 pre 等宽显示
+  html = html.replace(/<p>((?:(?:\S+\s{2,}){2,}\S+.*(?:\n|<\/p>)){2,})/g, function(m, content) {
+    var clean = content.replace(/<\/?p>/g, '').trim();
+    // 确认不是已有 markup 元素（已经有 table/ul/ol/pre 等标签的不处理）
+    if (/<(table|ul|ol|pre|h[1-4]|blockquote)/.test(clean)) return m;
+    // 确认每行至少有 2 个 "2+空格分隔" 的列
+    var lines = clean.split('\n');
+    var colCount = 0;
+    for (var i = 0; i < lines.length; i++) {
+      var cols = lines[i].split(/\s{2,}/);
+      if (cols.length >= 3) colCount++;
+    }
+    if (colCount >= 2) {
+      return '<pre style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;overflow-x:auto;font-size:13px;line-height:1.6"><code>' + escapeHtml(clean) + '</code></pre>';
+    }
+    return m;
+  });
 
   return html;
 }
