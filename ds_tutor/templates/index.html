@@ -101,6 +101,33 @@ textarea:focus, input:focus { outline:none; border-color:var(--accent); }
 .mermaid-block svg { max-width:100%; }
 .mermaid-raw { background:var(--bg); border:1px dashed var(--border); border-radius:var(--radius); padding:16px; margin:12px 0; overflow-x:auto; }
 .mermaid-raw pre { margin:0; font-size:12px; color:var(--text-dim); }
+/* chat bubbles */
+.chat-list { display:flex; flex-direction:column; gap:16px; }
+.chat-msg { max-width:85%; padding:14px 18px; border-radius:12px; font-size:14px; line-height:1.7; word-wrap:break-word; }
+.chat-msg.user { align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+.chat-msg.ai { align-self:flex-start; background:var(--surface); border:1px solid var(--border); border-bottom-left-radius:4px; }
+.chat-msg .msg-label { font-size:11px; margin-bottom:6px; opacity:.7; font-weight:600; }
+.chat-msg h1,.chat-msg h2,.chat-msg h3 { margin:12px 0 6px; }
+.chat-msg .chat-msg h1,.chat-msg.ai h1,.chat-msg.ai h2,.chat-msg.ai h3 { color:var(--accent); }
+.chat-msg table { width:100%; border-collapse:collapse; margin:10px 0; font-size:13px; }
+.chat-msg th,.chat-msg td { border:1px solid var(--border); padding:6px 10px; text-align:left; }
+.chat-msg.ai th { background:rgba(88,166,255,0.1); color:var(--accent); }
+.chat-msg.user th { background:rgba(255,255,255,0.1); }
+.chat-msg pre { border-radius:6px; padding:12px; overflow-x:auto; margin:10px 0; font-size:12px; }
+.chat-msg.ai pre { background:#0d1117; border:1px solid var(--border); }
+.chat-msg.user pre { background:rgba(0,0,0,0.2); }
+.chat-msg code { font-family:'Fira Code','Cascadia Code','Courier New',monospace; font-size:12px; }
+.chat-msg :not(pre) > code { padding:2px 5px; border-radius:3px; }
+.chat-msg.ai :not(pre) > code { background:rgba(88,166,255,0.1); }
+.chat-msg.user :not(pre) > code { background:rgba(255,255,255,0.15); }
+.chat-msg blockquote { border-left:3px solid var(--accent); padding:6px 12px; margin:8px 0; }
+.chat-msg.ai blockquote { background:rgba(88,166,255,0.05); }
+.chat-msg ul,.chat-msg ol { padding-left:20px; margin:6px 0; }
+.chat-msg li { margin:3px 0; }
+.chat-msg p { margin:6px 0; }
+.chat-msg hr { border:none; border-top:1px solid var(--border); margin:12px 0; }
+.chat-bar { display:flex; gap:10px; align-items:center; }
+.chat-bar input { flex:1; }
 ::-webkit-scrollbar { width:6px; }
 ::-webkit-scrollbar-track { background:var(--bg); }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
@@ -335,62 +362,104 @@ function escapeHtml(text) {
   return text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── Explain ────────────────────────────
+// ── Explain (聊天模式) ─────────────────
+let chatHistory = []; // 当前会话的对话记录
+
 function renderExplain(content, inputArea) {
-  content.innerHTML =
-    '<div class="empty-state">' +
-      '<div class="icon">🎯</div>' +
-      '<p>输入你想了解的算法或数据结构，我会用可视化的方式为你讲解</p>' +
-      '<p style="font-size:13px;color:var(--text-dim)">例如：KMP算法、Dijkstra、线段树、动态规划...</p>' +
-    '</div>';
+  if (chatHistory.length === 0) {
+    content.innerHTML =
+      '<div class="empty-state">' +
+        '<div class="icon">🎯</div>' +
+        '<p>输入你想了解的算法或数据结构</p>' +
+        '<p style="font-size:13px;color:var(--text-dim)">例如：KMP算法、Dijkstra、线段树、动态规划...</p>' +
+      '</div>';
+  } else {
+    content.innerHTML = '<div class="chat-list" id="chatList"></div>';
+    var list = document.getElementById('chatList');
+    chatHistory.forEach(function(msg) {
+      appendChatBubble(list, msg.role, msg.content);
+    });
+    content.scrollTop = content.scrollHeight;
+  }
   inputArea.innerHTML =
-    '<div class="input-row">' +
-      '<input type="text" id="explainInput" placeholder="输入知识点，如 KMP算法的next数组构建">' +
-      '<button class="btn" id="explainBtn">讲解</button>' +
+    '<div class="chat-bar">' +
+      '<input type="text" id="explainInput" placeholder="输入你想了解的算法或数据结构..." style="flex:1">' +
+      '<button class="btn" id="explainBtn">发送</button>' +
     '</div>';
   document.getElementById('explainBtn').addEventListener('click', doExplain);
   document.getElementById('explainInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') doExplain();
   });
+  // 自动聚焦
+  setTimeout(function() {
+    var inp = document.getElementById('explainInput');
+    if (inp) inp.focus();
+  }, 100);
+}
+
+function appendChatBubble(container, role, html) {
+  var div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  div.innerHTML = '<div class="msg-label">' + (role === 'user' ? '🧑 你' : '🤖 AI 助教') + '</div>' + html;
+  container.appendChild(div);
+  highlightAllCode(container);
+  renderMermaidDiagrams(container);
 }
 
 async function doExplain() {
-  const topic = document.getElementById('explainInput').value.trim();
+  var input = document.getElementById('explainInput');
+  var topic = input.value.trim();
   if (!topic) return;
-  const content = document.getElementById('content');
-  content.innerHTML = '';
+  input.value = '';
 
-  const msgDiv = document.createElement('div');
-  msgDiv.className = 'card';
-  msgDiv.innerHTML = '<div class="card-header"><span class="spinner"></span>正在生成「' + escapeHtml(topic) + '」的可视化讲解...</div><div class="card-body" id="streamContent"></div>';
-  content.appendChild(msgDiv);
+  var content = document.getElementById('content');
 
+  // 第一次对话时替换空状态
+  if (chatHistory.length === 0) {
+    content.innerHTML = '<div class="chat-list" id="chatList"></div>';
+  }
+
+  var list = document.getElementById('chatList');
+  if (!list) {
+    content.innerHTML = '<div class="chat-list" id="chatList"></div>';
+    list = document.getElementById('chatList');
+  }
+
+  // 添加用户消息
+  chatHistory.push({role:'user', content:'<p>' + escapeHtml(topic) + '</p>'});
+  appendChatBubble(list, 'user', '<p>' + escapeHtml(topic) + '</p>');
+
+  // 添加 AI 占位消息
+  var aiBubble = document.createElement('div');
+  aiBubble.className = 'chat-msg ai';
+  aiBubble.innerHTML = '<div class="msg-label">🤖 AI 助教</div><div class="card-body" id="streamContent"><span class="spinner"></span>思考中...</div>';
+  list.appendChild(aiBubble);
+  content.scrollTop = content.scrollHeight;
+
+  var rawText = '';
   try {
-    const r = await fetch('/api/explain/stream', {
+    var r = await fetch('/api/explain/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({topic})
     });
-    const reader = r.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let rawText = '';
+    var reader = r.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
     while (true) {
-      const {done, value} = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, {stream:true});
-      const lines = buffer.split('\n');
+      var chunk = await reader.read();
+      if (chunk.done) break;
+      buffer += decoder.decode(chunk.value, {stream:true});
+      var lines = buffer.split('\n');
       buffer = lines.pop();
-      for (const line of lines) {
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
         if (line.startsWith('data: ')) {
-          const d = line.slice(6);
-          if (d === '[DONE]') {
-            msgDiv.querySelector('.card-header').textContent = '📖 ' + topic;
-            continue;
-          }
+          var d = line.slice(6);
+          if (d === '[DONE]') continue;
           try {
-            const p = JSON.parse(d);
+            var p = JSON.parse(d);
             if (p.error) {
-              document.getElementById('streamContent').innerHTML += '<p style="color:var(--red)">' + escapeHtml(p.error) + '</p>';
+              document.getElementById('streamContent').innerHTML = '<p style="color:var(--red)">' + escapeHtml(p.error) + '</p>';
             }
             if (p.content) {
               rawText += p.content;
@@ -401,11 +470,16 @@ async function doExplain() {
         }
       }
     }
-    highlightAllCode(document.getElementById('streamContent'));
-    renderMermaidDiagrams(document.getElementById('streamContent'));
+    var finalHtml = parseMarkdown(rawText);
+    chatHistory.push({role:'ai', content:finalHtml});
+    aiBubble.querySelector('.card-body').innerHTML = finalHtml;
+    aiBubble.querySelector('.card-body').removeAttribute('id');
+    highlightAllCode(aiBubble);
+    renderMermaidDiagrams(aiBubble);
   } catch(e) {
-    document.getElementById('streamContent').innerHTML += '<p style="color:var(--red)">请求失败: ' + escapeHtml(e.message) + '</p>';
+    aiBubble.querySelector('.card-body').innerHTML = '<p style="color:var(--red)">请求失败: ' + escapeHtml(e.message) + '</p>';
   }
+  content.scrollTop = content.scrollHeight;
 }
 
 // ── Analyze ────────────────────────────
