@@ -483,11 +483,18 @@ async function doExplain() {
   list.appendChild(aiBubble);
   content.scrollTop = content.scrollHeight;
 
+  // 判断是首次提问还是追问
+  var isFollowUp = chatHistory.length > 0;
+  var endpoint = isFollowUp ? '/api/explain/follow-up/stream' : '/api/explain/stream';
+  var body = isFollowUp
+    ? JSON.stringify({history: JSON.stringify(chatHistory), answer: topic})
+    : JSON.stringify({topic: topic});
+
   var rawText = '';
   try {
-    var r = await fetch('/api/explain/stream', {
+    var r = await fetch(endpoint, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({topic})
+      body: body
     });
     var reader = r.body.getReader();
     var decoder = new TextDecoder();

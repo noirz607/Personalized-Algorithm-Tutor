@@ -26,6 +26,43 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/api/explain/follow-up/stream", methods=["POST"])
+def api_explain_follow_up_stream():
+    """流式追问回复 — 学生回答了引导问题后的苏格拉底式评估"""
+    data = request.json
+    history = data.get("history", "")
+    answer = data.get("answer", "")
+
+    def generate():
+        try:
+            from openai import OpenAI
+            from .prompt_engine import SYSTEM_PROMPT, FOLLOW_UP_PROMPT
+
+            client = OpenAI(api_key=get_api_key(), base_url=get_api_base())
+            stream = client.chat.completions.create(
+                model=get_model(),
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": FOLLOW_UP_PROMPT.format(history=history, answer=answer)},
+                ],
+                temperature=0.7,
+                stream=True,
+            )
+            for chunk in stream:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield f"data: {json.dumps({'content': delta})}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
 @app.route("/api/explain", methods=["POST"])
 def api_explain():
     data = request.json

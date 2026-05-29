@@ -165,6 +165,33 @@ HINT_PROMPT = """## 上下文
 直接给出提示问题，不需要其他格式。"""
 
 
+# ── 追问回复 Prompt（学生回答了引导问题后） ──
+
+FOLLOW_UP_PROMPT = """## 任务：评估学生回答并继续苏格拉底式对话
+
+你之前为学生讲解了某个知识点，并提出了引导性问题。现在学生给出了他的回答。
+
+### 对话历史
+{history}
+
+### 学生的回答
+{answer}
+
+### 输出要求
+
+1. **评估**：简短评价学生的回答是否正确、哪里理解到位、哪里有偏差（1-2 句话）
+2. **纠偏**：如果有误解，用提问的方式纠正，不要直接说"你错了"
+3. **深入**：根据学生的理解程度，提 1 个更深入的引导问题
+4. **可视化补充**：如果学生对某个子概念还模糊，可以用简单的 Mermaid 图或表格补充说明
+
+### 重要约束
+- 不要重复最初的知识点讲解
+- 不要直接给答案
+- 保持苏格拉底式对话风格
+- 仍然用 Mermaid 图表和表格（如果需要补充说明的话）
+- 整体回复简洁，不要超过最初讲解的篇幅"""
+
+
 def _get_client() -> OpenAI:
     """获取 OpenAI 客户端"""
     return OpenAI(api_key=get_api_key(), base_url=get_api_base())
@@ -224,6 +251,14 @@ def generate_practice(weak_points: str) -> str:
     return _call_llm(
         SYSTEM_PROMPT,
         PRACTICE_PROMPT.format(memory_context=memory_context),
+    )
+
+
+def follow_up(history: str, answer: str) -> str:
+    """学生对引导问题的追问回复"""
+    return _call_llm(
+        SYSTEM_PROMPT,
+        FOLLOW_UP_PROMPT.format(history=history, answer=answer),
     )
 
 
