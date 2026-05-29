@@ -1,0 +1,16 @@
+[project]
+name = "ds-tutor"
+version = "1.0.0"
+description = "个性化算法学习助手 — 视觉化讲解 · 苏格拉底式提问 · 错题记忆"
+requires-python = ">=3.9"
+dependencies = ["rich>=13.0.0", "openai>=1.0.0"]
+
+[project.scripts]
+ds-tutor = "ds_tutor.main:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["ds_tutor*"]
