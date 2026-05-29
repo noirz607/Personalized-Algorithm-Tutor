@@ -3,7 +3,7 @@
 import json
 from flask import Flask, render_template, request, jsonify, Response, stream_with_context
 
-from .prompt_engine import explain, analyze_code, generate_practice
+from .prompt_engine import explain, analyze_code
 from .memory import (
     record_error,
     get_all_errors,
@@ -202,26 +202,6 @@ def api_hint():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/practice", methods=["POST"])
-def api_practice():
-    data = request.json
-    category = data.get("category", "")
-    try:
-        weak_points = get_weak_points_summary()
-        if category:
-            patterns = [p for p in get_frequent_patterns(min_count=1) if p["category"] == category]
-            if patterns:
-                weak_points = f"重点关注 [{category}] 类型:\n"
-                for p in patterns:
-                    weak_points += f"- {p['error_type']}: 已出现 {p['cnt']} 次\n"
-            else:
-                weak_points = f"学生想练习 [{category}] 类型的题目"
-        result = generate_practice(weak_points)
-        return jsonify({"result": result})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route("/api/memory", methods=["GET"])
 def api_memory():
     errors = get_all_errors()
@@ -258,13 +238,12 @@ def api_stats():
 @app.route("/api/prompts", methods=["GET"])
 def api_prompts():
     """返回当前使用的 Prompt 模板"""
-    from .prompt_engine import EXPLAIN_PROMPT, ANALYZE_PROMPT, PRACTICE_PROMPT, SYSTEM_PROMPT
+    from .prompt_engine import EXPLAIN_PROMPT, ANALYZE_PROMPT, SYSTEM_PROMPT
 
     return jsonify({
         "system": SYSTEM_PROMPT,
         "explain": EXPLAIN_PROMPT,
         "analyze": ANALYZE_PROMPT,
-        "practice": PRACTICE_PROMPT,
     })
 
 

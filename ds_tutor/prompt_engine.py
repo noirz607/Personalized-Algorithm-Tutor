@@ -128,28 +128,6 @@ ANALYZE_PROMPT = """## 任务：代码错误分析与 Debug 引导
 
 # ── 练习生成 Prompt ────────────────────────
 
-PRACTICE_PROMPT = """## 任务：生成针对性练习题
-
-{memory_context}
-
-### 输出要求
-
-请生成 1 道针对学生薄弱点的练习题：
-
-#### 1. 题目描述
-给出题目背景、输入输出格式、数据范围。
-
-#### 2. 为什么选这道题
-简要说明这道题针对的是学生的哪个薄弱点。
-
-#### 3. 引导性问题
-在给出题目后，附带 1 个引导性提示（不给解法），帮助学生找到突破口。
-
-### 重要约束
-- 题目难度适中，不应远超学生当前水平
-- 题目应聚焦于学生反复犯错的知识点
-- 不要给出解法，只给引导性提示"""
-
 # ── 提示 Prompt (学生要求更多提示时) ──────
 
 HINT_PROMPT = """## 上下文
@@ -238,19 +216,6 @@ def analyze_code(code: str, problem_description: str, memory_text: str = "") -> 
             code=code,
             memory_context=memory_text,
         ),
-    )
-
-
-def generate_practice(weak_points: str) -> str:
-    """生成针对性练习题"""
-    memory_context = (
-        f"学生的薄弱知识点和高频错误：\n{weak_points}"
-        if weak_points
-        else "学生暂无历史错误记录，请生成一道中等难度的数据结构与算法综合题。"
-    )
-    return _call_llm(
-        SYSTEM_PROMPT,
-        PRACTICE_PROMPT.format(memory_context=memory_context),
     )
 
 

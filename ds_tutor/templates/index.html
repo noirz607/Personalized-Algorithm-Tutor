@@ -140,7 +140,6 @@ textarea:focus, input:focus { outline:none; border-color:var(--accent); }
   <nav>
     <a data-page="explain" class="active">📖 可视化讲解</a>
     <a data-page="analyze">🔍 代码分析</a>
-    <a data-page="practice">🏋️ 靶向练习</a>
     <a data-page="memory">📋 记忆库</a>
     <a data-page="stats">📊 统计</a>
     <a data-page="prompts">📄 指令</a>
@@ -385,7 +384,7 @@ function switchPage(page) {
 
 const titles = {
   explain:'📖 可视化知识点讲解', analyze:'🔍 代码错误分析',
-  practice:'🏋️ 靶向练习题', memory:'📋 错误记忆库',
+  memory:'📋 错误记忆库',
   stats:'📊 学习统计', prompts:'📄 指令模板', config:'⚙️ 设置'
 };
 
@@ -397,7 +396,6 @@ function renderPage(page) {
   switch(page) {
     case 'explain': renderExplain(content, inputArea); break;
     case 'analyze': renderAnalyze(content, inputArea); break;
-    case 'practice': renderPractice(content, inputArea); break;
     case 'memory': loadMemory(content, inputArea); break;
     case 'stats': loadStats(content, inputArea); break;
     case 'prompts': loadPrompts(content, inputArea); break;
@@ -762,39 +760,6 @@ function recordErrorDialog() {
   }).then(function() { alert('已记录'); });
 }
 
-// ── Practice ───────────────────────────
-function renderPractice(content, inputArea) {
-  content.innerHTML =
-    '<div class="empty-state">' +
-      '<div class="icon">🏋️</div>' +
-      '<p>基于你的错误记忆，生成针对性练习题</p>' +
-    '</div>';
-  inputArea.innerHTML =
-    '<div class="input-row">' +
-      '<input type="text" id="practiceCategory" placeholder="指定题目类型（可选，如 dp/graph/tree）">' +
-      '<button class="btn" id="practiceBtn">生成练习</button>' +
-    '</div>';
-  document.getElementById('practiceBtn').addEventListener('click', doPractice);
-  document.getElementById('practiceCategory').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') doPractice();
-  });
-}
-
-async function doPractice() {
-  var cat = document.getElementById('practiceCategory').value.trim();
-  var content = document.getElementById('content');
-  content.innerHTML = '<div class="card"><div class="card-header"><span class="spinner"></span>正在生成练习题...</div><div class="card-body"></div></div>';
-  try {
-    var r = await fetch('/api/practice', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({category:cat})});
-    var d = await r.json();
-    content.innerHTML = '<div class="card"><div class="card-header">🏋️ 针对性练习题</div><div class="card-body">' + parseMarkdown(d.result || d.error) + '</div></div>';
-    highlightAllCode(content);
-    renderMermaidDiagrams(content);
-  } catch(e) {
-    content.innerHTML = '<div class="card" style="color:var(--red)">请求失败: ' + escapeHtml(e.message) + '</div>';
-  }
-}
-
 // ── Memory ─────────────────────────────
 async function loadMemory(content, inputArea) {
   content.innerHTML = '<div class="card"><div class="card-header"><span class="spinner"></span>加载记忆库...</div></div>';
@@ -865,8 +830,7 @@ async function loadPrompts(content, inputArea) {
     var sections = [
       {key:'system', title:'系统指令 (System Prompt)', icon:'🤖'},
       {key:'explain', title:'可视化讲解指令', icon:'📖'},
-      {key:'analyze', title:'代码分析指令', icon:'🔍'},
-      {key:'practice', title:'练习生成指令', icon:'🏋️'}
+      {key:'analyze', title:'代码分析指令', icon:'🔍'}
     ];
     var html = '';
     sections.forEach(function(s) {
