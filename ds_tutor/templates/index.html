@@ -197,6 +197,19 @@ function parseMarkdown(text) {
   // 有序列表
   html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
 
+  // 表格 — 必须放在段落包裹之前！此时行间只有单个 \n
+  html = html.replace(/(^\|.+\|\n\|[-| :]+\|\n((?:\|.+\|\n?)+))/gm, function(match) {
+    var rows = match.trim().split('\n');
+    var headerRow = rows[0];
+    var headers = headerRow.split('|').filter(function(h) { return h.trim(); }).map(function(h) { return '<th>' + h.trim() + '</th>'; }).join('');
+    var bodyHtml = '';
+    for (var i = 2; i < rows.length; i++) {
+      var cells = rows[i].split('|').filter(function(c) { return c.trim(); }).map(function(c) { return '<td>' + c.trim() + '</td>'; }).join('');
+      bodyHtml += '<tr>' + cells + '</tr>';
+    }
+    return '<table><thead><tr>' + headers + '</tr></thead><tbody>' + bodyHtml + '</tbody></table>';
+  });
+
   // 段落 (连续非空行)
   html = html.replace(/\n\n+/g, '</p><p>');
   html = '<p>' + html + '</p>';
@@ -210,16 +223,6 @@ function parseMarkdown(text) {
   html = html.replace(/<p>(<blockquote>)/g, '$1');
   html = html.replace(/(<\/blockquote>)<\/p>/g, '$1');
   html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
-
-  // 表格
-  html = html.replace(/<p>\|(.+)\|<\/p>\n<p>\|[-| :]+\|<\/p>\n((?:<p>\|.+\|<\/p>\n?)+)/g, function(match, header, body) {
-    const headers = header.split('|').filter(h => h.trim()).map(h => '<th>' + h.trim() + '</th>').join('');
-    const rows = body.replace(/<p>\|(.+)\|<\/p>/g, function(m, row) {
-      const cells = row.split('|').filter(c => c.trim()).map(c => '<td>' + c.trim() + '</td>').join('');
-      return '<tr>' + cells + '</tr>';
-    });
-    return '<table><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table>';
-  });
 
   return html;
 }
