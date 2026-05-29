@@ -4,6 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>个性化算法学习助手</title>
+<script>
+// Mermaid 加载 — 国内用 unpkg 兜底
+window._mermaidReady = false;
+(function loadMermaid(){
+  var s = document.createElement('script');
+  s.src = 'https://registry.npmmirror.com/mermaid/10.9.0/files/dist/mermaid.min.js';
+  s.onload = function(){
+    mermaid.initialize({startOnLoad:false, theme:'default', securityLevel:'loose'});
+    window._mermaidReady = true;
+  };
+  s.onerror = function(){
+    console.warn('Mermaid CDN 加载失败，流程图将显示为原始代码');
+  };
+  document.head.appendChild(s);
+})();
+</script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 :root {
@@ -80,6 +96,11 @@ textarea:focus, input:focus { outline:none; border-color:var(--accent); }
 /* empty */
 .empty-state { text-align:center; padding:48px 24px; color:var(--text-dim); }
 .empty-state .icon { font-size:48px; margin-bottom:16px; }
+/* mermaid diagram container */
+.mermaid-block { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin:12px 0; overflow-x:auto; text-align:center; }
+.mermaid-block svg { max-width:100%; }
+.mermaid-raw { background:var(--bg); border:1px dashed var(--border); border-radius:var(--radius); padding:16px; margin:12px 0; overflow-x:auto; }
+.mermaid-raw pre { margin:0; font-size:12px; color:var(--text-dim); }
 ::-webkit-scrollbar { width:6px; }
 ::-webkit-scrollbar-track { background:var(--bg); }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
@@ -217,6 +238,46 @@ function highlightAllCode(container) {
   });
 }
 
+// 渲染 Mermaid 图表 — 将 ```mermaid 代码块转为 SVG
+async function renderMermaidDiagrams(container) {
+  if (!window._mermaidReady) {
+    // Mermaid 没加载，给代码块加个 dashed 边框保留原始语法
+    container.querySelectorAll('pre code').forEach(function(code) {
+      var text = (code.textContent || '').trim();
+      if (text.match(/^(graph |flowchart |sequenceDiagram|classDiagram|stateDiagram|gantt|pie|erDiagram)/)) {
+        var pre = code.parentElement;
+        pre.className = 'mermaid-raw';
+        pre.innerHTML = '<code style="font-size:12px;color:var(--text-dim)">' + escapeHtml(text) + '</code>';
+      }
+    });
+    return;
+  }
+  // 找到所有看起来像 mermaid 的代码块
+  var blocks = [];
+  container.querySelectorAll('pre code').forEach(function(code) {
+    var text = (code.textContent || '').trim();
+    if (text.match(/^(graph |flowchart |sequenceDiagram|classDiagram|stateDiagram|gantt|pie|erDiagram)/)) {
+      blocks.push({pre: code.parentElement, code: text});
+    }
+  });
+  for (var i = 0; i < blocks.length; i++) {
+    try {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'mermaid-block';
+      var id = 'mermaid-' + Date.now() + '-' + i;
+      wrapper.innerHTML = '<div class="mermaid">' + blocks[i].code + '</div>';
+      blocks[i].pre.replaceWith(wrapper);
+    } catch(e) {
+      blocks[i].pre.className = 'mermaid-raw';
+    }
+  }
+  try {
+    await mermaid.run({querySelector: '.mermaid-block .mermaid'});
+  } catch(e) {
+    console.warn('Mermaid render error:', e);
+  }
+}
+
 // ═══════════════════════════════════════
 // 页面逻辑
 // ═══════════════════════════════════════
@@ -341,6 +402,7 @@ async function doExplain() {
       }
     }
     highlightAllCode(document.getElementById('streamContent'));
+    renderMermaidDiagrams(document.getElementById('streamContent'));
   } catch(e) {
     document.getElementById('streamContent').innerHTML += '<p style="color:var(--red)">请求失败: ' + escapeHtml(e.message) + '</p>';
   }
@@ -426,6 +488,7 @@ async function doAnalyze() {
       }
     }
     highlightAllCode(document.getElementById('streamContent'));
+    renderMermaidDiagrams(document.getElementById('streamContent'));
   } catch(e) {
     document.getElementById('streamContent').innerHTML += '<p style="color:var(--red)">' + escapeHtml(e.message) + '</p>';
   }
@@ -443,6 +506,7 @@ async function doHint() {
     const d = await r.json();
     msgDiv.innerHTML = '<div class="card-header">💡 更多提示</div><div class="card-body">' + parseMarkdown(d.result || d.error) + '</div>';
     highlightAllCode(msgDiv);
+    renderMermaidDiagrams(msgDiv);
   } catch(e) {
     msgDiv.innerHTML = '<div class="card-body" style="color:var(--red)">' + escapeHtml(e.message) + '</div>';
   }
@@ -488,6 +552,7 @@ async function doPractice() {
     var d = await r.json();
     content.innerHTML = '<div class="card"><div class="card-header">🏋️ 针对性练习题</div><div class="card-body">' + parseMarkdown(d.result || d.error) + '</div></div>';
     highlightAllCode(content);
+    renderMermaidDiagrams(content);
   } catch(e) {
     content.innerHTML = '<div class="card" style="color:var(--red)">请求失败: ' + escapeHtml(e.message) + '</div>';
   }
