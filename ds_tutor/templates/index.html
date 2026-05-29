@@ -553,6 +553,28 @@ async function doExplain() {
     aiBubble.querySelector('.card-body').innerHTML = '<p style="color:var(--red)">请求失败: ' + escapeHtml(e.message) + '</p>';
   }
   content.scrollTop = content.scrollHeight;
+  // 刷新输入区，显示"新话题"按钮
+  var inputArea = document.getElementById('inputArea');
+  if (chatHistory.length > 0 && !document.getElementById('newTopicBtn')) {
+    inputArea.innerHTML =
+      '<div class="chat-bar">' +
+        '<input type="text" id="explainInput" placeholder="继续讨论或输入新知识点..." style="flex:1">' +
+        '<button class="btn" id="explainBtn">发送</button>' +
+        '<button class="btn secondary" id="newTopicBtn" style="font-size:12px">🗑 新话题</button>' +
+      '</div>';
+    document.getElementById('explainBtn').addEventListener('click', doExplain);
+    document.getElementById('explainInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doExplain();
+    });
+    document.getElementById('newTopicBtn').addEventListener('click', function() {
+      chatHistory = [];
+      switchPage('explain');
+    });
+    setTimeout(function() {
+      var inp = document.getElementById('explainInput');
+      if (inp) inp.focus();
+    }, 100);
+  }
 }
 
 // ── Analyze ────────────────────────────
