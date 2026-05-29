@@ -4,10 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>个性化算法学习助手</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
-<script src="https://cdn.jsdelivr.net/npm/marked@11/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 :root {
@@ -16,38 +12,49 @@
   --green: #3fb950; --red: #f85149; --yellow: #d2991d;
   --radius: 8px;
 }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; overflow:hidden; }
-/* ---- sidebar ---- */
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; overflow:hidden; }
+/* sidebar */
 .sidebar { width:220px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:16px 0; flex-shrink:0; }
 .sidebar .logo { padding:0 16px 20px; font-size:18px; font-weight:700; color:var(--accent); }
 .sidebar nav { flex:1; display:flex; flex-direction:column; }
-.sidebar nav a { color:var(--text-dim); text-decoration:none; padding:10px 20px; display:block; font-size:14px; transition:.15s; border-left:3px solid transparent; }
+.sidebar nav a { color:var(--text-dim); text-decoration:none; padding:10px 20px; font-size:14px; cursor:pointer; transition:.15s; border-left:3px solid transparent; user-select:none; }
 .sidebar nav a:hover, .sidebar nav a.active { color:var(--text); background:rgba(88,166,255,0.08); border-left-color:var(--accent); }
 .sidebar .status { padding:16px; font-size:12px; color:var(--text-dim); border-top:1px solid var(--border); }
-/* ---- main ---- */
+/* main */
 .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .header { padding:16px 24px; border-bottom:1px solid var(--border); font-size:14px; font-weight:600; background:var(--surface); }
 .content { flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:16px; }
-/* ---- cards / messages ---- */
+/* cards */
 .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
 .card.warn { border-color:var(--yellow); background:rgba(210,153,29,0.06); }
 .card-header { font-weight:600; margin-bottom:12px; color:var(--accent); font-size:14px; display:flex; align-items:center; gap:8px; }
 .card-header.warn { color:var(--yellow); }
 .card-body { font-size:14px; line-height:1.7; }
+/* markdown styles */
 .card-body h1,.card-body h2,.card-body h3 { margin:16px 0 8px; color:var(--accent); }
 .card-body h4 { margin:12px 0 4px; color:var(--text); }
 .card-body table { width:100%; border-collapse:collapse; margin:12px 0; }
 .card-body th,.card-body td { border:1px solid var(--border); padding:8px 12px; text-align:left; font-size:13px; }
 .card-body th { background:rgba(88,166,255,0.1); color:var(--accent); }
 .card-body pre { background:#0d1117; border:1px solid var(--border); border-radius:var(--radius); padding:16px; overflow-x:auto; margin:12px 0; }
-.card-body code { font-family:'Fira Code', 'Cascadia Code', monospace; font-size:13px; }
-.card-body blockquote { border-left:3px solid var(--accent); padding:8px 16px; margin:12px 0; background:rgba(88,166,255,0.05); }
+.card-body code { font-family:'Fira Code','Cascadia Code','Courier New',monospace; font-size:13px; }
+.card-body pre code { display:block; }
+.card-body blockquote { border-left:3px solid var(--accent); padding:8px 16px; margin:12px 0; background:rgba(88,166,255,0.05); color:var(--text-dim); }
 .card-body p { margin:8px 0; }
-.card-body li { margin:4px 0 4px 20px; }
-/* ---- input area ---- */
+.card-body ul,.card-body ol { margin:8px 0; padding-left:24px; }
+.card-body li { margin:4px 0; }
+.card-body strong { color:var(--text); }
+.card-body em { color:var(--text-dim); }
+.card-body hr { border:none; border-top:1px solid var(--border); margin:16px 0; }
+/* inline code (not in pre) */
+.card-body :not(pre) > code { background:rgba(88,166,255,0.1); padding:2px 6px; border-radius:4px; font-size:13px; }
+/* syntax highlighting */
+.kw { color:#ff7b72; } .str { color:#a5d6ff; } .cm { color:#8b949e; font-style:italic; }
+.num { color:#79c0ff; } .fn { color:#d2a8ff; } .op { color:#ff7b72; } .pp { color:#79c0ff; }
+/* inputs */
 .input-area { border-top:1px solid var(--border); padding:16px 24px; background:var(--surface); }
 .input-row { display:flex; gap:12px; }
-textarea, input[type=text] { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:12px; color:var(--text); font-size:14px; resize:none; font-family:inherit; }
+textarea, input[type=text], input[type=password] { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:12px; color:var(--text); font-size:14px; resize:none; font-family:inherit; }
 textarea:focus, input:focus { outline:none; border-color:var(--accent); }
 .btn { background:var(--accent); color:#fff; border:none; border-radius:var(--radius); padding:10px 20px; font-size:14px; cursor:pointer; font-weight:600; transition:.15s; white-space:nowrap; }
 .btn:hover { opacity:.85; }
@@ -56,34 +63,26 @@ textarea:focus, input:focus { outline:none; border-color:var(--accent); }
 .form-row { display:flex; gap:12px; margin-bottom:8px; align-items:center; }
 .form-row label { width:80px; font-size:13px; color:var(--text-dim); flex-shrink:0; }
 .form-row select { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:8px; color:var(--text); font-size:13px; }
-/* ---- spinner ---- */
+/* spinner */
 .spinner { display:inline-block; width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .6s linear infinite; margin-right:8px; }
 @keyframes spin { to{transform:rotate(360deg);} }
-/* ---- stats grid ---- */
+/* stats */
 .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; }
 .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; text-align:center; }
 .stat-val { font-size:28px; font-weight:700; color:var(--accent); }
 .stat-label { font-size:12px; color:var(--text-dim); margin-top:4px; }
-/* ---- error list ---- */
+/* errors */
 .error-item { padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-size:13px; }
-.error-item .tag { padding:2px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+.tag { padding:2px 10px; border-radius:12px; font-size:11px; font-weight:600; }
 .tag.red { background:rgba(248,81,73,0.15); color:var(--red); }
 .tag.yellow { background:rgba(210,153,29,0.15); color:var(--yellow); }
 .tag.green { background:rgba(63,185,80,0.15); color:var(--green); }
-/* ---- empty state ---- */
+/* empty */
 .empty-state { text-align:center; padding:48px 24px; color:var(--text-dim); }
 .empty-state .icon { font-size:48px; margin-bottom:16px; }
-/* ---- mermaid ---- */
-.mermaid-wrapper { background:#fff; border-radius:var(--radius); padding:16px; margin:12px 0; overflow-x:auto; }
-/* ---- toast ---- */
-.toast { position:fixed; top:20px; right:20px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 20px; font-size:14px; z-index:1000; animation:fadeIn .2s; }
-@keyframes fadeIn { from{opacity:0;transform:translateY(-8px);} to{opacity:1;transform:translateY(0);} }
-/* ---- scrollbar ---- */
 ::-webkit-scrollbar { width:6px; }
 ::-webkit-scrollbar-track { background:var(--bg); }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-/* ---- mermaid dark fix ---- */
-.mermaid svg { max-width:100%; }
 </style>
 </head>
 <body>
@@ -91,14 +90,14 @@ textarea:focus, input:focus { outline:none; border-color:var(--accent); }
 <aside class="sidebar">
   <div class="logo">🧠 算法学习助手</div>
   <nav>
-    <a href="#" data-page="explain" class="active" onclick="switchPage('explain')">📖 可视化讲解</a>
-    <a href="#" data-page="analyze" onclick="switchPage('analyze')">🔍 代码分析</a>
-    <a href="#" data-page="practice" onclick="switchPage('practice')">🏋️ 靶向练习</a>
-    <a href="#" data-page="memory" onclick="switchPage('memory')">📋 记忆库</a>
-    <a href="#" data-page="stats" onclick="switchPage('stats')">📊 统计</a>
-    <a href="#" data-page="config" onclick="switchPage('config')">⚙️ 设置</a>
+    <a data-page="explain" class="active">📖 可视化讲解</a>
+    <a data-page="analyze">🔍 代码分析</a>
+    <a data-page="practice">🏋️ 靶向练习</a>
+    <a data-page="memory">📋 记忆库</a>
+    <a data-page="stats">📊 统计</a>
+    <a data-page="config">⚙️ 设置</a>
   </nav>
-  <div class="status" id="apiStatus">🔗 API 未验证</div>
+  <div class="status" id="apiStatus">🔗 检查中...</div>
 </aside>
 
 <main class="main">
@@ -108,27 +107,145 @@ textarea:focus, input:focus { outline:none; border-color:var(--accent); }
 </main>
 
 <script>
-// ── Init ──────────────────────────────
-marked.setOptions({breaks:true, gfm:true});
-hljs.configure({languages:['cpp','python','c','java','javascript','']});
-mermaid.initialize({startOnLoad:false, theme:'default', securityLevel:'loose'});
+// ═══════════════════════════════════════
+// 纯 JS Markdown → HTML 解析器 (零外部依赖)
+// ═══════════════════════════════════════
+function parseMarkdown(text) {
+  if (!text) return '';
+  let html = text;
+
+  // 行内代码 (先处理，防止被其他规则破坏)
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // 标题
+  html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  // 粗体/斜体
+  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // 引用
+  html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+  html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+
+  // 分隔线
+  html = html.replace(/^---$/gm, '<hr>');
+
+  // 无序列表
+  html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+  // 有序列表
+  html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+  // 段落 (连续非空行)
+  html = html.replace(/\n\n+/g, '</p><p>');
+  html = '<p>' + html + '</p>';
+
+  // 清理
+  html = html.replace(/<p>\s*<\/p>/g, '');
+  html = html.replace(/<p>(<h[1-4]>)/g, '$1');
+  html = html.replace(/(<\/h[1-4]>)<\/p>/g, '$1');
+  html = html.replace(/<p>(<ul>)/g, '$1');
+  html = html.replace(/(<\/ul>)<\/p>/g, '$1');
+  html = html.replace(/<p>(<blockquote>)/g, '$1');
+  html = html.replace(/(<\/blockquote>)<\/p>/g, '$1');
+  html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
+
+  // 表格
+  html = html.replace(/<p>\|(.+)\|<\/p>\n<p>\|[-| :]+\|<\/p>\n((?:<p>\|.+\|<\/p>\n?)+)/g, function(match, header, body) {
+    const headers = header.split('|').filter(h => h.trim()).map(h => '<th>' + h.trim() + '</th>').join('');
+    const rows = body.replace(/<p>\|(.+)\|<\/p>/g, function(m, row) {
+      const cells = row.split('|').filter(c => c.trim()).map(c => '<td>' + c.trim() + '</td>').join('');
+      return '<tr>' + cells + '</tr>';
+    });
+    return '<table><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  });
+
+  return html;
+}
+
+// C++ 语法高亮 (简易版)
+function highlightCode(code, lang) {
+  if (!lang || lang === 'plaintext' || lang === 'text') {
+    return code.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  let html = code.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // 注释
+  html = html.replace(/(\/\/.*$)/gm, '<span class="cm">$1</span>');
+  // 字符串
+  html = html.replace(/(&quot;.*?&quot;)/g, '<span class="str">$1</span>');
+  html = html.replace(/(".*?")/g, '<span class="str">$1</span>');
+  // 关键字
+  const kws = ['int','long','float','double','char','bool','void','auto','const',
+    'if','else','for','while','do','return','break','continue','switch','case',
+    'struct','class','public','private','protected','namespace','using','include',
+    'typedef','sizeof','new','delete','this','virtual','override','static',
+    'vector','map','set','queue','stack','string','pair','priority_queue',
+    'push_back','size','empty','begin','end','front','back','top','pop','clear',
+    'true','false','nullptr','NULL','memset','memcpy','sort','lower_bound',
+    'std','cout','cin','endl','scanf','printf','define','ifndef','endif',
+  ];
+  const kwPattern = new RegExp('\\b(' + kws.join('|') + ')\\b', 'g');
+  html = html.replace(kwPattern, '<span class="kw">$1</span>');
+  // 数字
+  html = html.replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>');
+  // 预处理指令
+  html = html.replace(/(#\w+)/g, '<span class="pp">$1</span>');
+  // 函数调用
+  html = html.replace(/\b([a-zA-Z_]\w*)(?=\s*\()/g, '<span class="fn">$1</span>');
+
+  return html;
+}
+
+// 为代码块添加语法高亮
+function highlightAllCode(container) {
+  const pres = container.querySelectorAll('pre');
+  pres.forEach(pre => {
+    if (pre.dataset.highlighted) return;
+    pre.dataset.highlighted = '1';
+    let code = pre.textContent || pre.innerText || '';
+    // 尝试检测语言
+    let lang = 'cpp';
+    if (code.includes('def ') || code.includes('import ')) lang = 'python';
+    pre.innerHTML = '<code>' + highlightCode(code, lang) + '</code>';
+  });
+}
+
+// ═══════════════════════════════════════
+// 页面逻辑
+// ═══════════════════════════════════════
 
 let currentPage = 'explain';
 
+// 侧边栏点击事件
+document.querySelectorAll('.sidebar nav a').forEach(a => {
+  a.addEventListener('click', function() {
+    switchPage(this.dataset.page);
+  });
+});
+
 async function init() {
-  const r = await fetch('/api/config');
-  const c = await r.json();
-  document.getElementById('apiStatus').textContent = c.has_key ? '🔗 已连接' : '⚠️ 未配置 API Key';
-  renderPage('explain');
-  if (!c.has_key) switchPage('config');
+  try {
+    const r = await fetch('/api/config');
+    const c = await r.json();
+    document.getElementById('apiStatus').textContent = c.has_key ? '🔗 已连接' : '⚠️ 未配置 API Key';
+  } catch(e) {
+    document.getElementById('apiStatus').textContent = '⚠️ 无法连接';
+  }
+  switchPage('explain');
 }
 init();
 
-// ── Page switching ────────────────────
 function switchPage(page) {
   currentPage = page;
   document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
-  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  document.querySelector('[data-page="' + page + '"]').classList.add('active');
   renderPage(page);
 }
 
@@ -153,59 +270,27 @@ function renderPage(page) {
   }
 }
 
-// ── renderMarkdown helper ─────────────
-function renderMd(text) {
-  return marked.parse(text);
+function escapeHtml(text) {
+  return text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-async function renderMermaidDiagrams(container) {
-  const mm = container.querySelectorAll('code.language-mermaid');
-  for (const el of mm) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'mermaid-wrapper';
-    wrapper.textContent = el.textContent;
-    el.parentElement.replaceWith(wrapper);
-  }
-  try { await mermaid.run({nodes: container.querySelectorAll('.mermaid-wrapper')}); } catch(e) {}
-}
-
-function highlightCode(container) {
-  container.querySelectorAll('pre code').forEach(block => {
-    hljs.highlightElement(block);
-  });
-}
-
-function appendMessage(container, html) {
-  const div = document.createElement('div');
-  div.className = 'card';
-  div.innerHTML = '<div class="card-body">' + html + '</div>';
-  container.appendChild(div);
-  highlightCode(container);
-  renderMermaidDiagrams(container);
-  container.scrollTop = container.scrollHeight;
-}
-
-function appendWarning(container, text) {
-  const div = document.createElement('div');
-  div.className = 'card warn';
-  div.innerHTML = `<div class="card-header warn">⚠️ 记忆提醒</div><div class="card-body">${text}</div>`;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
-}
-
-// ── Explain page ──────────────────────
+// ── Explain ────────────────────────────
 function renderExplain(content, inputArea) {
-  content.innerHTML = `
-    <div class="empty-state">
-      <div class="icon">🎯</div>
-      <p>输入你想了解的算法或数据结构，我会用可视化的方式为你讲解</p>
-      <p style="font-size:13px;color:var(--text-dim)">例如：KMP算法、Dijkstra、线段树、动态规划、红黑树...</p>
-    </div>`;
-  inputArea.innerHTML = `
-    <div class="input-row">
-      <input type="text" id="explainInput" placeholder="输入知识点，如 KMP算法的next数组构建" onkeydown="if(event.key==='Enter')doExplain()">
-      <button class="btn" onclick="doExplain()">讲解</button>
-    </div>`;
+  content.innerHTML =
+    '<div class="empty-state">' +
+      '<div class="icon">🎯</div>' +
+      '<p>输入你想了解的算法或数据结构，我会用可视化的方式为你讲解</p>' +
+      '<p style="font-size:13px;color:var(--text-dim)">例如：KMP算法、Dijkstra、线段树、动态规划...</p>' +
+    '</div>';
+  inputArea.innerHTML =
+    '<div class="input-row">' +
+      '<input type="text" id="explainInput" placeholder="输入知识点，如 KMP算法的next数组构建">' +
+      '<button class="btn" id="explainBtn">讲解</button>' +
+    '</div>';
+  document.getElementById('explainBtn').addEventListener('click', doExplain);
+  document.getElementById('explainInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doExplain();
+  });
 }
 
 async function doExplain() {
@@ -216,7 +301,7 @@ async function doExplain() {
 
   const msgDiv = document.createElement('div');
   msgDiv.className = 'card';
-  msgDiv.innerHTML = `<div class="card-header"><span class="spinner"></span>正在生成「${topic}」的可视化讲解...</div><div class="card-body" id="streamContent"></div>`;
+  msgDiv.innerHTML = '<div class="card-header"><span class="spinner"></span>正在生成「' + escapeHtml(topic) + '」的可视化讲解...</div><div class="card-body" id="streamContent"></div>';
   content.appendChild(msgDiv);
 
   try {
@@ -227,6 +312,7 @@ async function doExplain() {
     const reader = r.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let rawText = '';
     while (true) {
       const {done, value} = await reader.read();
       if (done) break;
@@ -234,49 +320,53 @@ async function doExplain() {
       const lines = buffer.split('\n');
       buffer = lines.pop();
       for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const d = line.slice(6);
-        if (d === '[DONE]') {
-          msgDiv.querySelector('.card-header').textContent = `📖 ${topic}`;
-          continue;
-        }
-        try {
-          const p = JSON.parse(d);
-          if (p.error) { document.getElementById('streamContent').innerHTML += `<p style="color:var(--red)">${p.error}</p>`; }
-          if (p.content) {
-            const el = document.getElementById('streamContent');
-            el.innerHTML += p.content;
-            el.innerHTML = renderMd(el.textContent || el.innerText);
-            content.scrollTop = content.scrollHeight;
+        if (line.startsWith('data: ')) {
+          const d = line.slice(6);
+          if (d === '[DONE]') {
+            msgDiv.querySelector('.card-header').textContent = '📖 ' + topic;
+            continue;
           }
-        } catch(e) {}
+          try {
+            const p = JSON.parse(d);
+            if (p.error) {
+              document.getElementById('streamContent').innerHTML += '<p style="color:var(--red)">' + escapeHtml(p.error) + '</p>';
+            }
+            if (p.content) {
+              rawText += p.content;
+              document.getElementById('streamContent').innerHTML = parseMarkdown(rawText);
+              content.scrollTop = content.scrollHeight;
+            }
+          } catch(e) {}
+        }
       }
     }
-    const el = document.getElementById('streamContent');
-    highlightCode(el);
+    highlightAllCode(document.getElementById('streamContent'));
   } catch(e) {
-    document.getElementById('streamContent').innerHTML += `<p style="color:var(--red)">请求失败: ${e.message}</p>`;
+    document.getElementById('streamContent').innerHTML += '<p style="color:var(--red)">请求失败: ' + escapeHtml(e.message) + '</p>';
   }
 }
 
-// ── Analyze page ──────────────────────
+// ── Analyze ────────────────────────────
 function renderAnalyze(content, inputArea) {
-  content.innerHTML = `
-    <div class="empty-state">
-      <div class="icon">🔍</div>
-      <p>粘贴你的代码，AI 会用苏格拉底式提问引导你找到问题</p>
-      <p style="font-size:13px;color:var(--text-dim)">绝不直接给出答案，让你自己找到解法</p>
-    </div>`;
-  inputArea.innerHTML = `
-    <textarea id="analyzeCode" rows="6" placeholder="在此粘贴代码..."></textarea>
-    <div style="margin:8px 0">
-      <input type="text" id="analyzeProblem" placeholder="题目描述（可选）">
-    </div>
-    <div style="display:flex;gap:12px">
-      <button class="btn" onclick="doAnalyze()">分析代码</button>
-      <button class="btn secondary" onclick="doHint()">💡 更多提示</button>
-      <button class="btn secondary" onclick="recordErrorDialog()">📝 记录错误</button>
-    </div>`;
+  content.innerHTML =
+    '<div class="empty-state">' +
+      '<div class="icon">🔍</div>' +
+      '<p>粘贴你的代码，AI 会用苏格拉底式提问引导你找到问题</p>' +
+      '<p style="font-size:13px;color:var(--text-dim)">绝不直接给出答案，让你自己找到解法</p>' +
+    '</div>';
+  inputArea.innerHTML =
+    '<textarea id="analyzeCode" rows="6" placeholder="在此粘贴 C++ 代码..."></textarea>' +
+    '<div style="margin:8px 0">' +
+      '<input type="text" id="analyzeProblem" placeholder="题目描述（可选）">' +
+    '</div>' +
+    '<div style="display:flex;gap:12px">' +
+      '<button class="btn" id="analyzeBtn">分析代码</button>' +
+      '<button class="btn secondary" id="hintBtn">💡 更多提示</button>' +
+      '<button class="btn secondary" id="recordErrBtn">📝 记录错误</button>' +
+    '</div>';
+  document.getElementById('analyzeBtn').addEventListener('click', doAnalyze);
+  document.getElementById('hintBtn').addEventListener('click', doHint);
+  document.getElementById('recordErrBtn').addEventListener('click', recordErrorDialog);
 }
 
 async function doAnalyze() {
@@ -288,7 +378,7 @@ async function doAnalyze() {
 
   const msgDiv = document.createElement('div');
   msgDiv.className = 'card';
-  msgDiv.innerHTML = `<div class="card-header"><span class="spinner"></span>正在分析代码...</div><div class="card-body" id="streamContent"></div>`;
+  msgDiv.innerHTML = '<div class="card-header"><span class="spinner"></span>正在分析代码...</div><div class="card-body" id="streamContent"></div>';
   content.appendChild(msgDiv);
 
   try {
@@ -299,6 +389,7 @@ async function doAnalyze() {
     const reader = r.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let rawText = '';
     let firstChunk = true;
     while (true) {
       const {done, value} = await reader.read();
@@ -307,32 +398,36 @@ async function doAnalyze() {
       const lines = buffer.split('\n');
       buffer = lines.pop();
       for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const d = line.slice(6);
-        if (d === '[DONE]') {
-          msgDiv.querySelector('.card-header').textContent = '🔍 代码分析结果';
-          continue;
+        if (line.startsWith('data: ')) {
+          const d = line.slice(6);
+          if (d === '[DONE]') {
+            msgDiv.querySelector('.card-header').textContent = '🔍 代码分析结果';
+            continue;
+          }
+          try {
+            const p = JSON.parse(d);
+            if (p.error) {
+              document.getElementById('streamContent').innerHTML += '<p style="color:var(--red)">' + escapeHtml(p.error) + '</p>';
+            }
+            if (firstChunk && p.warnings && p.warnings.length > 0) {
+              firstChunk = false;
+              const warnDiv = document.createElement('div');
+              warnDiv.className = 'card warn';
+              warnDiv.innerHTML = '<div class="card-header warn">⚠️ 记忆提醒</div><div class="card-body">你之前在 [' + escapeHtml(p.category) + '] 类型题目中有 ' + p.warnings.length + ' 个重复错误模式</div>';
+              content.appendChild(warnDiv);
+            }
+            if (p.content) {
+              rawText += p.content;
+              document.getElementById('streamContent').innerHTML = parseMarkdown(rawText);
+              content.scrollTop = content.scrollHeight;
+            }
+          } catch(e) {}
         }
-        try {
-          const p = JSON.parse(d);
-          if (p.error) { document.getElementById('streamContent').innerHTML += `<p style="color:var(--red)">${p.error}</p>`; }
-          if (firstChunk && p.warnings && p.warnings.length > 0) {
-            firstChunk = false;
-            appendWarning(content, `你之前在 [${p.category}] 类型题目中有 ${p.warnings.length} 个重复错误模式`);
-          }
-          if (p.content) {
-            const el = document.getElementById('streamContent');
-            el.innerHTML += p.content;
-            el.innerHTML = renderMd(el.textContent || el.innerText);
-            content.scrollTop = content.scrollHeight;
-          }
-        } catch(e) {}
       }
     }
-    const el = document.getElementById('streamContent');
-    highlightCode(el);
+    highlightAllCode(document.getElementById('streamContent'));
   } catch(e) {
-    document.getElementById('streamContent').innerHTML += `<p style="color:var(--red)">${e.message}</p>`;
+    document.getElementById('streamContent').innerHTML += '<p style="color:var(--red)">' + escapeHtml(e.message) + '</p>';
   }
 }
 
@@ -340,144 +435,154 @@ async function doHint() {
   const content = document.getElementById('content');
   const msgDiv = document.createElement('div');
   msgDiv.className = 'card';
-  msgDiv.innerHTML = `<div class="card-header"><span class="spinner"></span>获取提示...</div><div class="card-body"></div>`;
+  msgDiv.innerHTML = '<div class="card-header"><span class="spinner"></span>获取提示...</div><div class="card-body"></div>';
   content.appendChild(msgDiv);
   content.scrollTop = content.scrollHeight;
   try {
     const r = await fetch('/api/hint', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
     const d = await r.json();
-    msgDiv.innerHTML = `<div class="card-header">💡 更多提示</div><div class="card-body">${renderMd(d.result || d.error)}</div>`;
-    highlightCode(msgDiv);
+    msgDiv.innerHTML = '<div class="card-header">💡 更多提示</div><div class="card-body">' + parseMarkdown(d.result || d.error) + '</div>';
+    highlightAllCode(msgDiv);
   } catch(e) {
-    msgDiv.innerHTML = `<div class="card-body" style="color:var(--red)">${e.message}</div>`;
+    msgDiv.innerHTML = '<div class="card-body" style="color:var(--red)">' + escapeHtml(e.message) + '</div>';
   }
 }
 
 function recordErrorDialog() {
-  const category = prompt('题目类型 (dp/graph/tree/greedy/math/string/data_structure/general):', 'general');
-  if (!category) return;
-  const error_type = prompt('错误类型 (边界条件/初始化/溢出/逻辑错误/特判遗漏):', '逻辑错误');
-  if (!error_type) return;
-  const description = prompt('简短描述:');
-  if (!description) return;
+  var cat = prompt('题目类型 (dp/graph/tree/greedy/math/string/data_structure/general):', 'general');
+  if (!cat) return;
+  var et = prompt('错误类型 (边界条件/初始化/溢出/逻辑错误/特判遗漏):', '逻辑错误');
+  if (!et) return;
+  var desc = prompt('简短描述:');
+  if (!desc) return;
   fetch('/api/memory/record', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({category, error_type, description})
-  }).then(() => alert('已记录'));
+    body: JSON.stringify({category:cat, error_type:et, description:desc})
+  }).then(function() { alert('已记录'); });
 }
 
-// ── Practice page ─────────────────────
+// ── Practice ───────────────────────────
 function renderPractice(content, inputArea) {
-  content.innerHTML = `
-    <div class="empty-state">
-      <div class="icon">🏋️</div>
-      <p>基于你的错误记忆，生成针对性练习题</p>
-    </div>`;
-  inputArea.innerHTML = `
-    <div class="input-row">
-      <input type="text" id="practiceCategory" placeholder="指定题目类型（可选，如 dp/graph/tree）" onkeydown="if(event.key==='Enter')doPractice()">
-      <button class="btn" onclick="doPractice()">生成练习</button>
-    </div>`;
+  content.innerHTML =
+    '<div class="empty-state">' +
+      '<div class="icon">🏋️</div>' +
+      '<p>基于你的错误记忆，生成针对性练习题</p>' +
+    '</div>';
+  inputArea.innerHTML =
+    '<div class="input-row">' +
+      '<input type="text" id="practiceCategory" placeholder="指定题目类型（可选，如 dp/graph/tree）">' +
+      '<button class="btn" id="practiceBtn">生成练习</button>' +
+    '</div>';
+  document.getElementById('practiceBtn').addEventListener('click', doPractice);
+  document.getElementById('practiceCategory').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doPractice();
+  });
 }
 
 async function doPractice() {
-  const category = document.getElementById('practiceCategory').value.trim();
-  const content = document.getElementById('content');
-  content.innerHTML = `<div class="card"><div class="card-header"><span class="spinner"></span>正在生成练习题...</div><div class="card-body"></div></div>`;
+  var cat = document.getElementById('practiceCategory').value.trim();
+  var content = document.getElementById('content');
+  content.innerHTML = '<div class="card"><div class="card-header"><span class="spinner"></span>正在生成练习题...</div><div class="card-body"></div></div>';
   try {
-    const r = await fetch('/api/practice', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({category})});
-    const d = await r.json();
-    const html = renderMd(d.result || d.error);
-    content.innerHTML = `<div class="card"><div class="card-header">🏋️ 针对性练习题</div><div class="card-body">${html}</div></div>`;
-    highlightCode(content);
-    renderMermaidDiagrams(content);
+    var r = await fetch('/api/practice', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({category:cat})});
+    var d = await r.json();
+    content.innerHTML = '<div class="card"><div class="card-header">🏋️ 针对性练习题</div><div class="card-body">' + parseMarkdown(d.result || d.error) + '</div></div>';
+    highlightAllCode(content);
   } catch(e) {
-    content.innerHTML = `<div class="card" style="color:var(--red)">请求失败: ${e.message}</div>`;
+    content.innerHTML = '<div class="card" style="color:var(--red)">请求失败: ' + escapeHtml(e.message) + '</div>';
   }
 }
 
-// ── Memory page ───────────────────────
+// ── Memory ─────────────────────────────
 async function loadMemory(content, inputArea) {
-  content.innerHTML = `<div class="card"><div class="card-header"><span class="spinner"></span>加载记忆库...</div></div>`;
-  const r = await fetch('/api/memory');
-  const d = await r.json();
-  let html = '';
-  if (d.errors.length === 0) {
-    html = '<div class="empty-state"><div class="icon">🎉</div><p>记忆库为空，继续保持！</p></div>';
-  } else {
-    html = '<div class="card"><div class="card-header">📋 错误记忆档案</div>';
-    d.errors.forEach(e => {
-      const tagClass = e.mastered ? 'green' : 'red';
-      html += `<div class="error-item"><span>${e.time} · [${e.category}] ${e.error_type} · ${e.description}</span><span class="tag ${tagClass}">${e.mastered ? '已掌握' : '待解决'}</span></div>`;
-    });
-    html += '</div>';
-    if (d.patterns.length > 0) {
-      html += '<div class="card" style="margin-top:12px"><div class="card-header warn">🔁 高频重复错误</div>';
-      d.patterns.forEach(p => {
-        html += `<p style="margin:4px 0">[${p.category}] ${p.error_type} — 已出现 <b style="color:var(--red)">${p.cnt}</b> 次</p>`;
+  content.innerHTML = '<div class="card"><div class="card-header"><span class="spinner"></span>加载记忆库...</div></div>';
+  try {
+    var r = await fetch('/api/memory');
+    var d = await r.json();
+    var html = '';
+    if (d.errors.length === 0) {
+      html = '<div class="empty-state"><div class="icon">🎉</div><p>记忆库为空，继续保持！</p></div>';
+    } else {
+      html = '<div class="card"><div class="card-header">📋 错误记忆档案</div>';
+      d.errors.forEach(function(e) {
+        var cls = e.mastered ? 'green' : 'red';
+        html += '<div class="error-item"><span>' + escapeHtml(e.time) + ' · [' + escapeHtml(e.category) + '] ' + escapeHtml(e.error_type) + ' · ' + escapeHtml(e.description) + '</span><span class="tag ' + cls + '">' + (e.mastered ? '已掌握' : '待解决') + '</span></div>';
       });
       html += '</div>';
+      if (d.patterns.length > 0) {
+        html += '<div class="card" style="margin-top:12px"><div class="card-header warn">🔁 高频重复错误</div>';
+        d.patterns.forEach(function(p) {
+          html += '<p style="margin:4px 0">[' + escapeHtml(p.category) + '] ' + escapeHtml(p.error_type) + ' — 已出现 <b style="color:var(--red)">' + p.cnt + '</b> 次</p>';
+        });
+        html += '</div>';
+      }
     }
+    content.innerHTML = html;
+  } catch(e) {
+    content.innerHTML = '<div class="card" style="color:var(--red)">加载失败: ' + escapeHtml(e.message) + '</div>';
   }
-  content.innerHTML = html;
-  inputArea.innerHTML = `
-    <div style="display:flex;gap:12px">
-      <button class="btn secondary" onclick="markMastered()">✅ 标记某类错误已掌握</button>
-    </div>`;
+  inputArea.innerHTML =
+    '<div style="display:flex;gap:12px">' +
+      '<button class="btn secondary" id="markMasteredBtn">✅ 标记某类错误已掌握</button>' +
+    '</div>';
+  document.getElementById('markMasteredBtn').addEventListener('click', markMastered);
 }
 
 function markMastered() {
-  const t = prompt('输入要标记的错误类型:');
+  var t = prompt('输入要标记的错误类型:');
   if (!t) return;
   fetch('/api/memory/mark-mastered', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({error_type:t})})
-    .then(() => { alert('已标记'); renderPage('memory'); });
+    .then(function() { alert('已标记'); switchPage('memory'); });
 }
 
-// ── Stats page ────────────────────────
+// ── Stats ──────────────────────────────
 async function loadStats(content, inputArea) {
-  const r = await fetch('/api/stats');
-  const s = await r.json();
-  content.innerHTML = `
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-val">${s.total_sessions}</div><div class="stat-label">学习次数</div></div>
-      <div class="stat-card"><div class="stat-val">${s.total_errors}</div><div class="stat-label">累计错误</div></div>
-      <div class="stat-card"><div class="stat-val">${s.mastered}</div><div class="stat-label">已掌握类型</div></div>
-      <div class="stat-card"><div class="stat-val">${s.unmastered}</div><div class="stat-label">待解决类型</div></div>
-    </div>`;
+  try {
+    var r = await fetch('/api/stats');
+    var s = await r.json();
+    content.innerHTML =
+      '<div class="stats-grid">' +
+        '<div class="stat-card"><div class="stat-val">' + s.total_sessions + '</div><div class="stat-label">学习次数</div></div>' +
+        '<div class="stat-card"><div class="stat-val">' + s.total_errors + '</div><div class="stat-label">累计错误</div></div>' +
+        '<div class="stat-card"><div class="stat-val">' + s.mastered + '</div><div class="stat-label">已掌握类型</div></div>' +
+        '<div class="stat-card"><div class="stat-val">' + s.unmastered + '</div><div class="stat-label">待解决类型</div></div>' +
+      '</div>';
+  } catch(e) {
+    content.innerHTML = '<div class="card" style="color:var(--red)">加载失败</div>';
+  }
   inputArea.innerHTML = '';
 }
 
-// ── Config page ───────────────────────
+// ── Config ─────────────────────────────
 async function renderConfig(content, inputArea) {
-  const r = await fetch('/api/config');
-  const c = await r.json();
-  content.innerHTML = `
-    <div class="card">
-      <div class="card-header">⚙️ API 配置</div>
-      <div class="card-body">
-        <div class="form-row"><label>状态</label><span style="color:${c.has_key?'var(--green)':'var(--red)'}">${c.has_key ? '✅ 已配置' : '❌ 未配置 API Key'}</span></div>
-        <div class="form-row"><label>API Key</label><input type="password" id="cfgKey" placeholder="${c.masked_key || 'sk-...'}" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px;color:var(--text);font-size:13px"></div>
-        <div class="form-row"><label>API Base</label><input type="text" id="cfgBase" value="${c.api_base}" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px;color:var(--text);font-size:13px"></div>
-        <div class="form-row"><label>模型</label><input type="text" id="cfgModel" value="${c.model}" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px;color:var(--text);font-size:13px"></div>
-      </div>
-    </div>`;
-  inputArea.innerHTML = `
-    <div style="display:flex;gap:12px">
-      <button class="btn" onclick="saveConfig()">💾 保存配置</button>
-    </div>`;
+  var r = await fetch('/api/config');
+  var c = await r.json();
+  content.innerHTML =
+    '<div class="card">' +
+      '<div class="card-header">⚙️ API 配置</div>' +
+      '<div class="card-body">' +
+        '<div class="form-row"><label>状态</label><span style="color:' + (c.has_key ? 'var(--green)' : 'var(--red)') + '">' + (c.has_key ? '✅ 已配置' : '❌ 未配置 API Key') + '</span></div>' +
+        '<div class="form-row"><label>API Key</label><input type="password" id="cfgKey" placeholder="' + escapeHtml(c.masked_key || 'sk-...') + '" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px;color:var(--text);font-size:13px"></div>' +
+        '<div class="form-row"><label>API Base</label><input type="text" id="cfgBase" value="' + escapeHtml(c.api_base) + '" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px;color:var(--text);font-size:13px"></div>' +
+        '<div class="form-row"><label>模型</label><input type="text" id="cfgModel" value="' + escapeHtml(c.model) + '" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px;color:var(--text);font-size:13px"></div>' +
+      '</div>' +
+    '</div>';
+  inputArea.innerHTML =
+    '<div style="display:flex;gap:12px">' +
+      '<button class="btn" id="saveConfigBtn">💾 保存配置</button>' +
+    '</div>';
+  document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
 }
 
 async function saveConfig() {
-  const api_key = document.getElementById('cfgKey').value.trim();
-  const api_base = document.getElementById('cfgBase').value.trim();
-  const model = document.getElementById('cfgModel').value.trim();
-  const body = {};
+  var api_key = document.getElementById('cfgKey').value.trim();
+  var api_base = document.getElementById('cfgBase').value.trim();
+  var model = document.getElementById('cfgModel').value.trim();
+  var body = {api_base: api_base, model: model};
   if (api_key) body.api_key = api_key;
-  body.api_base = api_base;
-  body.model = model;
-  const r = await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  var r = await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
   if (r.ok) {
-    document.getElementById('apiStatus').textContent = api_key ? '🔗 已连接' : '⚠️ 未配置 API Key';
+    document.getElementById('apiStatus').textContent = (api_key || document.getElementById('cfgKey').placeholder !== '****') ? '🔗 已连接' : '⚠️ 未配置 API Key';
     alert('配置已保存');
   }
 }
