@@ -29,9 +29,9 @@ def get_api_key() -> str:
 
 def get_api_base() -> str:
     """获取 API Base URL"""
-    return os.environ.get("OPENAI_API_BASE") or load_config().get("api_base", "https://api.openai.com/v1")
+    return os.environ.get("OPENAI_API_BASE") or load_config().get("api_base", "https://api.deepseek.com")
 
 
 def get_model() -> str:
     """获取模型名称"""
-    return load_config().get("model", "gpt-4o")
+    return load_config().get("model", "deepseek-chat")

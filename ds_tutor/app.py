@@ -269,8 +269,8 @@ def _detect_category(code: str, problem: str) -> str:
 def main():
     """Web 入口"""
     print("\n  🧠 个性化算法学习助手 — Web 界面")
-    print("  打开浏览器访问 http://localhost:5000\n")
-    app.run(debug=True, port=5000)
+    print("  打开浏览器访问 http://localhost:8080\n")
+    app.run(debug=True, port=8080)
 
 
 if __name__ == "__main__":
