@@ -293,7 +293,7 @@ def api_compile_run():
 
         # 编译
         compile_result = subprocess.run(
-            ["g++", "-std=c++17", "-O2", "-Wall", cpp_file, "-o", exe_file],
+            ["g++-15", "-std=c++17", "-O2", "-Wall", cpp_file, "-o", exe_file],
             capture_output=True, text=True, timeout=30
         )
 
