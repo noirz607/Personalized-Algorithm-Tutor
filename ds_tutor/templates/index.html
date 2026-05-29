@@ -488,18 +488,24 @@ function renderAnalyze(content, inputArea) {
     '<div class="empty-state">' +
       '<div class="icon">🔍</div>' +
       '<p>粘贴你的代码，AI 会用苏格拉底式提问引导你找到问题</p>' +
-      '<p style="font-size:13px;color:var(--text-dim)">绝不直接给出答案，让你自己找到解法</p>' +
+      '<p style="font-size:13px;color:var(--text-dim)">支持编译运行 + 样例对拍，先跑测试再看 AI 分析</p>' +
     '</div>';
   inputArea.innerHTML =
-    '<textarea id="analyzeCode" rows="6" placeholder="在此粘贴 C++ 代码..."></textarea>' +
-    '<div style="margin:8px 0">' +
+    '<textarea id="analyzeCode" rows="6" placeholder="在此粘贴 C++ 代码..." style="margin-bottom:8px"></textarea>' +
+    '<div style="display:flex;gap:8px;margin-bottom:8px">' +
+      '<div style="flex:1"><label style="font-size:12px;color:var(--text-dim)">样例输入 stdin</label><textarea id="sampleInput" rows="2" style="width:100%" placeholder="1 2&#10;3 4"></textarea></div>' +
+      '<div style="flex:1"><label style="font-size:12px;color:var(--text-dim)">期望输出 stdout</label><textarea id="sampleOutput" rows="2" style="width:100%" placeholder="3&#10;7"></textarea></div>' +
+    '</div>' +
+    '<div style="margin-bottom:8px">' +
       '<input type="text" id="analyzeProblem" placeholder="题目描述（可选）">' +
     '</div>' +
     '<div style="display:flex;gap:12px">' +
-      '<button class="btn" id="analyzeBtn">分析代码</button>' +
+      '<button class="btn" id="runBtn">▶ 编译运行</button>' +
+      '<button class="btn secondary" id="analyzeBtn">🤖 AI 分析</button>' +
       '<button class="btn secondary" id="hintBtn">💡 更多提示</button>' +
       '<button class="btn secondary" id="recordErrBtn">📝 记录错误</button>' +
     '</div>';
+  document.getElementById('runBtn').addEventListener('click', doCompileRun);
   document.getElementById('analyzeBtn').addEventListener('click', doAnalyze);
   document.getElementById('hintBtn').addEventListener('click', doHint);
   document.getElementById('recordErrBtn').addEventListener('click', recordErrorDialog);
@@ -565,6 +571,68 @@ async function doAnalyze() {
     renderMermaidDiagrams(document.getElementById('streamContent'));
   } catch(e) {
     document.getElementById('streamContent').innerHTML += '<p style="color:var(--red)">' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+async function doCompileRun() {
+  var code = document.getElementById('analyzeCode').value.trim();
+  var input = document.getElementById('sampleInput').value;
+  var expected = document.getElementById('sampleOutput').value;
+  if (!code) return;
+
+  var content = document.getElementById('content');
+  content.innerHTML = '';
+
+  var card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = '<div class="card-header"><span class="spinner"></span>编译运行中...</div><div class="card-body"></div>';
+  content.appendChild(card);
+
+  try {
+    var r = await fetch('/api/compile-run', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({code:code, input:input, expected:expected})
+    });
+    var d = await r.json();
+
+    var html = '';
+    // 编译结果
+    if (d.compile_success) {
+      html += '<p>✅ <b style="color:var(--green)">编译成功</b></p>';
+    } else {
+      html += '<p>❌ <b style="color:var(--red)">编译失败</b></p>';
+      html += '<pre><code>' + escapeHtml(d.compile_errors || '') + '</code></pre>';
+    }
+
+    // 运行结果
+    if (d.run_success !== undefined) {
+      if (d.error) {
+        html += '<p>❌ <b style="color:var(--red)">' + escapeHtml(d.error) + '</b></p>';
+      } else {
+        html += '<p>▶ <b>运行结果:</b> 退出码 ' + d.exit_code + '</p>';
+        if (d.stderr) {
+          html += '<p style="color:var(--yellow)">⚠ stderr:</p><pre><code>' + escapeHtml(d.stderr) + '</code></pre>';
+        }
+        html += '<p><b>程序输出:</b></p><pre><code>' + escapeHtml(d.stdout || '(无输出)') + '</code></pre>';
+
+        if (expected) {
+          if (d.match) {
+            html += '<p>🎉 <b style="color:var(--green)">输出完全匹配！</b></p>';
+          } else {
+            html += '<p>❌ <b style="color:var(--red)">输出不匹配</b></p>';
+            html += '<p><b>期望输出:</b></p><pre><code>' + escapeHtml(expected) + '</code></pre>';
+            if (d.diff) {
+              html += '<p><b>差异:</b></p><pre><code>' + escapeHtml(d.diff) + '</code></pre>';
+            }
+          }
+        }
+      }
+    }
+
+    card.innerHTML = '<div class="card-header">▶ 编译运行结果</div><div class="card-body">' + html + '</div>';
+    highlightAllCode(card);
+  } catch(e) {
+    card.innerHTML = '<div class="card-header" style="color:var(--red)">请求失败</div><div class="card-body"><p>' + escapeHtml(e.message) + '</p></div>';
   }
 }
 

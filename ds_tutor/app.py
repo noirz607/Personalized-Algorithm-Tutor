@@ -266,6 +266,91 @@ def _detect_category(code: str, problem: str) -> str:
     return "general"
 
 
+@app.route("/api/compile-run", methods=["POST"])
+def api_compile_run():
+    """编译并运行 C++ 代码，对比样例输出"""
+    import subprocess
+    import tempfile
+    import os
+
+    data = request.json
+    code = data.get("code", "")
+    stdin_input = data.get("input", "")
+    expected_output = data.get("expected", "")
+
+    if not code:
+        return jsonify({"error": "代码不能为空"}), 400
+
+    # 在临时目录中编译运行
+    tmpdir = tempfile.mkdtemp(prefix="ds_tutor_")
+    cpp_file = os.path.join(tmpdir, "solution.cpp")
+    exe_file = os.path.join(tmpdir, "solution")
+
+    try:
+        # 写入代码文件
+        with open(cpp_file, "w") as f:
+            f.write(code)
+
+        # 编译
+        compile_result = subprocess.run(
+            ["g++", "-std=c++17", "-O2", "-Wall", cpp_file, "-o", exe_file],
+            capture_output=True, text=True, timeout=30
+        )
+
+        result = {
+            "compile_success": compile_result.returncode == 0,
+            "compile_errors": compile_result.stderr,
+        }
+
+        if compile_result.returncode != 0:
+            return jsonify(result)
+
+        # 运行
+        run_result = subprocess.run(
+            [exe_file],
+            input=stdin_input,
+            capture_output=True, text=True, timeout=5
+        )
+
+        actual_output = run_result.stdout.rstrip("\n").rstrip()
+        expected_clean = expected_output.rstrip("\n").rstrip()
+
+        result["run_success"] = True
+        result["stdout"] = actual_output
+        result["stderr"] = run_result.stderr
+        result["exit_code"] = run_result.returncode
+        result["match"] = actual_output == expected_clean
+
+        # 如果不匹配，生成 diff 描述
+        if not result["match"] and expected_clean:
+            result["diff"] = _simple_diff(actual_output, expected_clean)
+
+        return jsonify(result)
+
+    except subprocess.TimeoutExpired:
+        return jsonify({"compile_success": False, "compile_errors": "", "run_success": False, "error": "程序运行超时 (5秒)", "stdout": "", "stderr": ""})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        # 清理临时文件
+        import shutil
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+def _simple_diff(actual: str, expected: str) -> str:
+    """生成简单的逐行对比"""
+    actual_lines = actual.split("\n") if actual else [""]
+    expected_lines = expected.split("\n") if expected else [""]
+    max_len = max(len(actual_lines), len(expected_lines))
+    lines = []
+    for i in range(max_len):
+        a = actual_lines[i] if i < len(actual_lines) else "(无)"
+        e = expected_lines[i] if i < len(expected_lines) else "(无)"
+        if a != e:
+            lines.append(f"第{i+1}行: 实际=[{a}] 期望=[{e}]")
+    return "\n".join(lines) if lines else "输出格式可能不同（空格/换行差异）"
+
+
 def main():
     """Web 入口"""
     print("\n  🧠 个性化算法学习助手 — Web 界面")
