@@ -432,11 +432,19 @@ function renderExplain(content, inputArea) {
     '<div class="chat-bar">' +
       '<input type="text" id="explainInput" placeholder="输入你想了解的算法或数据结构..." style="flex:1">' +
       '<button class="btn" id="explainBtn">发送</button>' +
+      (chatHistory.length > 0 ? '<button class="btn secondary" id="newTopicBtn" style="font-size:12px">🗑 新话题</button>' : '') +
     '</div>';
   document.getElementById('explainBtn').addEventListener('click', doExplain);
   document.getElementById('explainInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') doExplain();
   });
+  var newBtn = document.getElementById('newTopicBtn');
+  if (newBtn) {
+    newBtn.addEventListener('click', function() {
+      chatHistory = [];
+      switchPage('explain');
+    });
+  }
   // 自动聚焦
   setTimeout(function() {
     var inp = document.getElementById('explainInput');
@@ -483,8 +491,19 @@ async function doExplain() {
   list.appendChild(aiBubble);
   content.scrollTop = content.scrollHeight;
 
-  // 判断是首次提问还是追问
-  var isFollowUp = chatHistory.length > 0;
+  // 判断是首次提问还是追问：检查是否在讨论同一话题
+  var isFollowUp = false;
+  if (chatHistory.length > 0) {
+    // 取上一次 AI 回复的最后 300 字作为上下文，检查话题是否相关
+    var lastAiMsg = '';
+    for (var i = chatHistory.length - 1; i >= 0; i--) {
+      if (chatHistory[i].role === 'ai') { lastAiMsg = chatHistory[i].content; break; }
+    }
+    // 简单判断：新消息太短或是全新知识点关键词 → 新话题
+    var isNewTopic = topic.length < 8
+      || /^(什么是|讲解|解释|介绍|说一下|讲讲|我想学|教我|KMP|Dijkstra|BFS|DFS|DP|动态规划|线段树|树状数组|并查集|最短路|最小生成树|拓扑排序|哈希|堆|栈|队列|红黑树|AVL|Trie|前缀树|背包|贪心|分治|回溯)/i.test(topic);
+    isFollowUp = !isNewTopic;
+  }
   var endpoint = isFollowUp ? '/api/explain/follow-up/stream' : '/api/explain/stream';
   var body = isFollowUp
     ? JSON.stringify({history: JSON.stringify(chatHistory), answer: topic})
