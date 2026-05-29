@@ -218,6 +218,19 @@ def api_stats():
     return jsonify(get_stats())
 
 
+@app.route("/api/prompts", methods=["GET"])
+def api_prompts():
+    """返回当前使用的 Prompt 模板"""
+    from .prompt_engine import EXPLAIN_PROMPT, ANALYZE_PROMPT, PRACTICE_PROMPT, SYSTEM_PROMPT
+
+    return jsonify({
+        "system": SYSTEM_PROMPT,
+        "explain": EXPLAIN_PROMPT,
+        "analyze": ANALYZE_PROMPT,
+        "practice": PRACTICE_PROMPT,
+    })
+
+
 @app.route("/api/config", methods=["GET", "POST"])
 def api_config():
     from .config import load_config, save_config

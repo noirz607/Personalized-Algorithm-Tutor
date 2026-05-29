@@ -143,6 +143,7 @@ textarea:focus, input:focus { outline:none; border-color:var(--accent); }
     <a data-page="practice">🏋️ 靶向练习</a>
     <a data-page="memory">📋 记忆库</a>
     <a data-page="stats">📊 统计</a>
+    <a data-page="prompts">📄 指令</a>
     <a data-page="config">⚙️ 设置</a>
   </nav>
   <div class="status" id="apiStatus">🔗 检查中...</div>
@@ -384,7 +385,7 @@ function switchPage(page) {
 const titles = {
   explain:'📖 可视化知识点讲解', analyze:'🔍 代码错误分析',
   practice:'🏋️ 靶向练习题', memory:'📋 错误记忆库',
-  stats:'📊 学习统计', config:'⚙️ 设置'
+  stats:'📊 学习统计', prompts:'📄 指令模板', config:'⚙️ 设置'
 };
 
 function renderPage(page) {
@@ -398,6 +399,7 @@ function renderPage(page) {
     case 'practice': renderPractice(content, inputArea); break;
     case 'memory': loadMemory(content, inputArea); break;
     case 'stats': loadStats(content, inputArea); break;
+    case 'prompts': loadPrompts(content, inputArea); break;
     case 'config': renderConfig(content, inputArea); break;
   }
 }
@@ -802,6 +804,35 @@ async function loadStats(content, inputArea) {
     content.innerHTML = '<div class="card" style="color:var(--red)">加载失败</div>';
   }
   inputArea.innerHTML = '';
+}
+
+// ── Prompts ────────────────────────────
+async function loadPrompts(content, inputArea) {
+  content.innerHTML = '<div class="card"><div class="card-header"><span class="spinner"></span>加载指令模板...</div></div>';
+  inputArea.innerHTML = '';
+  try {
+    var r = await fetch('/api/prompts');
+    var d = await r.json();
+    var sections = [
+      {key:'system', title:'系统指令 (System Prompt)', icon:'🤖'},
+      {key:'explain', title:'可视化讲解指令', icon:'📖'},
+      {key:'analyze', title:'代码分析指令', icon:'🔍'},
+      {key:'practice', title:'练习生成指令', icon:'🏋️'}
+    ];
+    var html = '';
+    sections.forEach(function(s) {
+      var text = d[s.key] || '(未找到)';
+      // 还原 {{ 为 { 显示
+      text = text.replace(/{{/g, '{').replace(/}}/g, '}');
+      html += '<div class="card" style="margin-bottom:16px">';
+      html += '<div class="card-header">' + s.icon + ' ' + s.title + '</div>';
+      html += '<pre style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;overflow-x:auto;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word"><code>' + escapeHtml(text) + '</code></pre>';
+      html += '</div>';
+    });
+    content.innerHTML = html;
+  } catch(e) {
+    content.innerHTML = '<div class="card" style="color:var(--red)">加载失败: ' + escapeHtml(e.message) + '</div>';
+  }
 }
 
 // ── Config ─────────────────────────────
