@@ -160,7 +160,14 @@ textarea:focus, input:focus { outline:none; border-color:var(--accent); }
 // ═══════════════════════════════════════
 function parseMarkdown(text) {
   if (!text) return '';
-  let html = text;
+  var html = text;
+
+  // 修复 LLM 把多行表格挤成一行：将 "| |" (分隔行 + 数据行挤在一起) 拆开
+  // 例如 |---|...| | 1 |...|  →  |---|...|\n| 1 |...|
+  html = html.replace(/\|\s*\|/g, function(m) {
+    // 连续的 "| |" 表示行边界被吃了，补回换行
+    return '|\n|';
+  });
 
   // 行内代码 (先处理，防止被其他规则破坏)
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
@@ -265,37 +272,53 @@ function highlightAllCode(container) {
   });
 }
 
-// 渲染 Mermaid 图表 — 将 ```mermaid 代码块转为 SVG
+// 渲染 Mermaid 图表 — 支持 ```mermaid 代码块和 `mermaid 内联代码
+function isMermaidCode(text) {
+  text = text.trim();
+  // 去掉可能的 "mermaid" 前缀（被当成语言标记时）
+  var t = text.replace(/^mermaid\s*\n?/i, '').trim();
+  return /^(graph |flowchart |sequenceDiagram|classDiagram|stateDiagram|gantt|pie|erDiagram|%%)/.test(t);
+}
+
 async function renderMermaidDiagrams(container) {
+  var blocks = [];
+
+  // 1. 从 <pre><code> 中找（标准三反引号代码块）
+  container.querySelectorAll('pre code').forEach(function(code) {
+    var text = (code.textContent || '').trim();
+    if (isMermaidCode(text)) {
+      blocks.push({el: code.parentElement, code: text});
+    }
+  });
+
+  // 2. 从内联 <code> 中找（LLM 用了单反引号 `mermaid ...`）
+  container.querySelectorAll(':not(pre) > code').forEach(function(code) {
+    var text = (code.textContent || '').trim();
+    if (isMermaidCode(text)) {
+      blocks.push({el: code.parentElement, code: text});
+    }
+  });
+
+  if (blocks.length === 0) return;
+
   if (!window._mermaidReady) {
-    // Mermaid 没加载，给代码块加个 dashed 边框保留原始语法
-    container.querySelectorAll('pre code').forEach(function(code) {
-      var text = (code.textContent || '').trim();
-      if (text.match(/^(graph |flowchart |sequenceDiagram|classDiagram|stateDiagram|gantt|pie|erDiagram)/)) {
-        var pre = code.parentElement;
-        pre.className = 'mermaid-raw';
-        pre.innerHTML = '<code style="font-size:12px;color:var(--text-dim)">' + escapeHtml(text) + '</code>';
-      }
+    blocks.forEach(function(b) {
+      b.el.className = 'mermaid-raw';
+      b.el.innerHTML = '<pre style="margin:0"><code style="font-size:12px;color:var(--text-dim)">' + escapeHtml(b.code) + '</code></pre>';
     });
     return;
   }
-  // 找到所有看起来像 mermaid 的代码块
-  var blocks = [];
-  container.querySelectorAll('pre code').forEach(function(code) {
-    var text = (code.textContent || '').trim();
-    if (text.match(/^(graph |flowchart |sequenceDiagram|classDiagram|stateDiagram|gantt|pie|erDiagram)/)) {
-      blocks.push({pre: code.parentElement, code: text});
-    }
-  });
+
   for (var i = 0; i < blocks.length; i++) {
+    var code = blocks[i].code.replace(/^mermaid\s*\n?/i, '').trim();
     try {
       var wrapper = document.createElement('div');
       wrapper.className = 'mermaid-block';
-      var id = 'mermaid-' + Date.now() + '-' + i;
-      wrapper.innerHTML = '<div class="mermaid">' + blocks[i].code + '</div>';
-      blocks[i].pre.replaceWith(wrapper);
+      wrapper.innerHTML = '<div class="mermaid">' + code + '</div>';
+      blocks[i].el.replaceWith(wrapper);
     } catch(e) {
-      blocks[i].pre.className = 'mermaid-raw';
+      blocks[i].el.className = 'mermaid-raw';
+      blocks[i].el.innerHTML = '<pre style="margin:0"><code style="font-size:12px;color:var(--text-dim)">' + escapeHtml(code) + '</code></pre>';
     }
   }
   try {
